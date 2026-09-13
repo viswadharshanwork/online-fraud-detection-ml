@@ -208,6 +208,8 @@ if input_mode == "Sample Transaction":
             "✅ LOAD LEGITIMATE SAMPLE",
             use_container_width=True
         ):
+            for feature_name, value in LEGITIMATE_SAMPLE.items():
+                st.session_state[f"input_{feature_name}"] = float(value)
             st.session_state["sample_data"] = LEGITIMATE_SAMPLE.copy()
             st.session_state["actual_class"] = 0
             st.session_state["prediction_result"] = None
@@ -217,6 +219,8 @@ if input_mode == "Sample Transaction":
             "🚨 LOAD FRAUD SAMPLE",
             use_container_width=True
         ):
+            for feature_name, value in FRAUD_SAMPLE.items():
+                st.session_state[f"input_{feature_name}"] = float(value)
             st.session_state["sample_data"] = FRAUD_SAMPLE.copy()
             st.session_state["actual_class"] = 1
             st.session_state["prediction_result"] = None
@@ -250,20 +254,26 @@ default_amount = (
     else 100.0
 )
 
+if "input_Time" not in st.session_state:
+    st.session_state["input_Time"] = default_time
+
+if "input_Amount" not in st.session_state:
+    st.session_state["input_Amount"] = default_amount
+
 with col1:
     time = st.number_input(
         "Time (seconds)",
         min_value=0.0,
-        value=default_time,
-        format="%.2f"
+        format="%.2f",
+        key="input_Time"
     )
 
 with col2:
     amount = st.number_input(
         "Transaction Amount",
         min_value=0.0,
-        value=default_amount,
-        format="%.2f"
+        format="%.2f",
+        key="input_Amount"
     )
 
 # ============================================================
@@ -290,10 +300,12 @@ for i in range(1, 29):
         else 0.0
     )
 
+    if f"input_{feature_name}" not in st.session_state:
+        st.session_state[f"input_{feature_name}"] = default_value
+
     with feature_columns[(i - 1) % 4]:
         v_values[feature_name] = st.number_input(
             feature_name,
-            value=default_value,
             format="%.6f",
             key=f"input_{feature_name}"
         )
@@ -432,7 +444,7 @@ st.write(
 st.write("### 🔝 Top 10 Important Features")
 
 importance_df = pd.DataFrame({
-    "Feature": FEATURES[1:-1],
+    "Feature": FEATURES,
     "Importance": model.feature_importances_
 })
 
